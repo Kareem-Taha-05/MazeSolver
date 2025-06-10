@@ -1,52 +1,24 @@
-import java.io.IOException;
-import java.util.List;
+import javax.swing.SwingUtilities;
 
 public class Main {
+    
     public static void main(String[] args) {
-        String filename = "C:/Users/hmat2/OneDrive/Desktop/MazeSolver/Maze3.txt"; // Make sure this file exists in your working directory
-
-        try {
-            // 1. Load the maze from file
-            MazeLoader loader = new MazeLoader();
-            char[][] charMaze = loader.load(filename);
-
-            // 2. Convert to tile maze
-            Tile[][] tileMaze = Tile.convertToTiles(charMaze);
-
-            // 3. Solve the maze
-            MazeSolver solver = new MazeSolver(tileMaze);
-            boolean solved = solver.DFS();
-
-            if (solved) {
-                // 4. Reconstruct and display path
-                List<Tile> path = solver.reconstructPath(tileMaze[tileMaze.length - 1][tileMaze[0].length - 1]);
-
-                // 5. Visualize the maze with path
-                for (Tile tile : path) {
-                    if (!tile.isStart() && !tile.isEnd()) {
-                        charMaze[tile.getRow()][tile.getCol()] = '*';
-                    }
+        // Ensure UI is created on Event Dispatch Thread
+        SwingUtilities.invokeLater(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    // Set look and feel to system default
+                    javax.swing.UIManager.setLookAndFeel(
+                        javax.swing.UIManager.getSystemLookAndFeelClassName());
+                } catch (Exception e) {
+                    // If setting look and feel fails, use default
+                    System.out.println("Could not set system look and feel: " + e.getMessage());
                 }
-
-                // 6. Print the solved maze
-                System.out.println("\nSolved Maze:");
-                for (char[] row : charMaze) {
-                    for (char ch : row) {
-                        System.out.print(ch);
-                    }
-                    System.out.println();
-                }
-
-                System.out.println("\nPath length (including start and end): " + path.size());
+                
+                // Create and initialize the UI
+                new MazeUI();
             }
-
-        } catch (IOException e) {
-            System.err.println("Failed to load maze: " + e.getMessage());
-        } catch (IllegalArgumentException e) {
-            System.err.println("Invalid maze: " + e.getMessage());
-        } catch (Exception e) {
-            System.err.println("Unexpected error: " + e.getMessage());
-            e.printStackTrace();
-        }
+        });
     }
 }

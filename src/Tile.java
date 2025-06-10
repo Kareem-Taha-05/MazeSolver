@@ -14,8 +14,8 @@ enum TileType {
 }
 
 public class Tile {
-	
-	// initialize our grid rows and columns 
+    
+    // initialize our grid rows and columns 
     private int row;
     private int col;
     // our tile type from the enum
@@ -55,8 +55,8 @@ public class Tile {
     
     // this class takes the output of the MazeLoader.load method and turns it into a 2d array of tiles rather than 2d array of chars
     public static Tile[][] convertToTiles(char[][] charMaze) {
-    	
-    	// initialize the 2d array 
+        
+        // initialize the 2d array 
         int rows = charMaze.length;
         int cols = charMaze[0].length;
         Tile[][] tileMaze = new Tile[rows][cols];
@@ -69,27 +69,27 @@ public class Tile {
 
                 switch (ch) {
                     case '#':
-                    	type = TileType.WALL;
-                    	break;
+                        type = TileType.WALL;
+                        break;
                     case 'A':
-                    	type = TileType.START;
+                        type = TileType.START;
                         break;
                     case 'B':
-                    	type = TileType.END;
-                    	break;
+                        type = TileType.END;
+                        break;
                     case 'T':
-                    	type = TileType.TELEPORT; 
-                    	break;
+                        type = TileType.TELEPORT; 
+                        break;
                     case 'C':
-                    	type = TileType.COUNTER_UP;
-                    	break;
+                        type = TileType.COUNTER_UP;
+                        break;
                     case 'c': 
-                    	type = TileType.COUNTER_DOWN;
-                    	break;
+                        type = TileType.COUNTER_DOWN;
+                        break;
                     case ' ': 
-                    	type = TileType.EMPTY;
-                    	break;
-                    	
+                        type = TileType.EMPTY;
+                        break;
+                        
                     default:
                         throw new IllegalArgumentException("Unknown tile character: " + ch);
                 }
@@ -105,15 +105,15 @@ public class Tile {
     // we used a linked list instead of directly loading it into a stack or Queue so that we can choose our 
     // search algorithm later and load the neighbors however we want 
     public List<Tile> getValidNeighbors(Tile[][] maze) {
-    	
-    	// initialize the linked list
+        
+        // initialize the linked list
         List<Tile> neighbors = new ArrayList<>();
 
         // 2d direction array, used to simplify our checking logic, since we check vertical and horizontal 
         // with no diagonals, so we just add the first element of each 1d array to the row and the second element to the columns
         int[][] directions = {
-            {-1, 0}, // add -1 to rows and 0 to columns so we check the tile downward from our current tile
-            {1, 0},  // Up
+            {-1, 0}, // Up
+            {1, 0},  // Down
             {0, -1}, // Left
             {0, 1}   // Right
         };
@@ -131,7 +131,7 @@ public class Tile {
             if (newRow >= 0 && newRow < rows && newCol >= 0 && newCol < cols) {
                 Tile neighbor = maze[newRow][newCol];
 
-                // wall check
+                // checking if the chosen tile is a wall or is visited before 
                 if (!neighbor.isWall() && !neighbor.isVisited()) {
                     neighbors.add(neighbor);
                 }
@@ -145,14 +145,14 @@ public class Tile {
     public Tile applySpecialEffect(Counter counter, Tile[][] maze) {
         switch (this.type) {
             case COUNTER_UP:
-            	counter.value += 5;
+                counter.value += 50;
                 break;
             case COUNTER_DOWN:
-            	counter.value += 5;
+                counter.value -= 50;
                 break;
             case TELEPORT:
-            	
-            	Random random = new Random();
+                
+                Random random = new Random();
                 Tile newLocation = null;
                 // our boundary for the random location 
                 int rows = maze.length;
@@ -160,7 +160,7 @@ public class Tile {
 
                 // loop until we find a legal tile
                 do {
-                	// choose a random tile within our boundary
+                    // choose a random tile within our boundary
                     int randRow = random.nextInt(rows);
                     int randCol = random.nextInt(cols);
                     // check if the tile is a wall
@@ -168,7 +168,6 @@ public class Tile {
                         newLocation = maze[randRow][randCol];
                     }
                 } while (newLocation == null);
-
 
                 return newLocation;
 
@@ -178,8 +177,6 @@ public class Tile {
 
         return this; // return current tile if not teleport
     }
-
-
-    
 }
+
 
