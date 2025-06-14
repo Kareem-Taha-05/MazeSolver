@@ -105,39 +105,37 @@ public class Tile {
     // we used a linked list instead of directly loading it into a stack or Queue so that we can choose our 
     // search algorithm later and load the neighbors however we want 
     public List<Tile> getValidNeighbors(Tile[][] maze) {
-        
         // initialize the linked list
         List<Tile> neighbors = new ArrayList<>();
-
-        // 2d direction array, used to simplify our checking logic, since we check vertical and horizontal 
-        // with no diagonals, so we just add the first element of each 1d array to the row and the second element to the columns
+        
+        // 2d direction array
         int[][] directions = {
-            {-1, 0}, // Up
-            {1, 0},  // Down
-            {0, -1}, // Left
-            {0, 1}   // Right
+            {1, 0}, // Down
+            {-1, 0},  // Up
+            {0, 1}, // Right
+            {0, -1}   // Left
         };
-
+        
         // the boundary for the maze
         int rows = maze.length;
-        int cols = maze[0].length; 
-
-        // loop for each direction (up down left right) and check if that neighbor is within boundary and is not a wall
+        int cols = maze[0].length;
+        
+        // loop for each direction and check if that neighbor is within boundary and is not a wall
         for (int[] dir : directions) {
             int newRow = row + dir[0];
             int newCol = col + dir[1];
-
-            //boundary check 
+            
+            //boundary check
             if (newRow >= 0 && newRow < rows && newCol >= 0 && newCol < cols) {
                 Tile neighbor = maze[newRow][newCol];
-
-                // checking if the chosen tile is a wall or is visited before 
+                
+                // Only check if it's a wall, NOT if it's visited
                 if (!neighbor.isWall() && !neighbor.isVisited()) {
                     neighbors.add(neighbor);
                 }
             }
         }
-
+        
         return neighbors;
     }
     
