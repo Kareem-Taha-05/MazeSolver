@@ -23,6 +23,7 @@ public class MazeUI extends JFrame {
     private MazeSolver solver;
     private Counter counter ;
     private boolean mazeLoaded;
+    private boolean[][] deadEndTiles; // Track dead end tiles for visualization
     
     // Colors for different tile states
     private static final Color WALL_COLOR = Color.BLACK;
@@ -34,12 +35,14 @@ public class MazeUI extends JFrame {
     private static final Color COUNTER_DOWN_COLOR = new Color(0, 100, 0); // Dark green
     private static final Color EXPLORED_COLOR = Color.YELLOW;
     private static final Color FINAL_PATH_COLOR = Color.GREEN;
+    private static final Color DEAD_END_COLOR = Color.PINK; // New color for dead end tiles
     
     public MazeUI() {
         this.counter = new Counter(0);
         this.mazeLoaded = false;
         initialize();
     }
+    
     public void initialize() {
         // Set up main frame
         setTitle("Maze Solver Visualization");
@@ -67,14 +70,21 @@ public class MazeUI extends JFrame {
         controlPanel = new JPanel();
         controlPanel.setLayout(new BoxLayout(controlPanel, BoxLayout.Y_AXIS));
         controlPanel.setBorder(BorderFactory.createTitledBorder("Controls"));
-        controlPanel.setPreferredSize(new Dimension(200, 400));
+        controlPanel.setPreferredSize(new Dimension(250, 400));
         
         // Counter label
         counterLabel = new JLabel("Counter: 0");
         counterLabel.setFont(new Font("Arial", Font.BOLD, 16));
         
-        // Algorithm dropdown
-        String[] algorithms = {"Depth-First Search (DFS)", "Breadth-First Search (BFS)", "A* Search"};
+        // Algorithm dropdown - now includes all algorithms from MazeSolver
+        String[] algorithms = {
+            "Depth-First Search (DFS)", 
+            "Breadth-First Search (BFS)", 
+            "A* Search",
+            "Dijkstra's Algorithm",
+            "Greedy Best-First Search",
+            "Dead End Fill"
+        };
         algorithmDropdown = new JComboBox<>(algorithms);
         
         // Buttons
@@ -123,6 +133,7 @@ public class MazeUI extends JFrame {
         legend.add(createLegendItem("Counter- (c)", COUNTER_DOWN_COLOR));
         legend.add(createLegendItem("Explored", EXPLORED_COLOR));
         legend.add(createLegendItem("Final Path", FINAL_PATH_COLOR));
+        legend.add(createLegendItem("Dead End", DEAD_END_COLOR));
         
         return legend;
     }
@@ -219,7 +230,11 @@ public class MazeUI extends JFrame {
     private void setTileColor(JPanel panel, Tile tile) {
         Color color;
         
-        if (tile.isVisited() && !tile.isStart() && !tile.isEnd()) {
+        // Check if this tile is marked as a dead end
+        if (deadEndTiles != null && deadEndTiles[tile.getRow()][tile.getCol()] && 
+            !tile.isStart() && !tile.isEnd() && !tile.isWall()) {
+            color = DEAD_END_COLOR;
+        } else if (tile.isVisited() && !tile.isStart() && !tile.isEnd()) {
             color = EXPLORED_COLOR;
         } else {
             switch (tile.getType()) {
@@ -317,13 +332,20 @@ public class MazeUI extends JFrame {
                 String selectedAlgorithm = (String) algorithmDropdown.getSelectedItem();
                 
                 boolean found = false;
+                
+                // Call the appropriate algorithm based on selection
                 if (selectedAlgorithm.contains("DFS")) {
                     found = solver.DFS();
                 } else if (selectedAlgorithm.contains("BFS")) {
                     found = solver.BFS();
                 } else if (selectedAlgorithm.contains("A*")) {
-                    // You'll need to implement A* in your MazeSolver
-                    JOptionPane.showMessageDialog(MazeUI.this, "A* not implemented yet!");
+                    found = solver.AStar();
+                } else if (selectedAlgorithm.contains("Dijkstra")) {
+                    found = solver.Dijkstra();
+                } else if (selectedAlgorithm.contains("Greedy")) {
+                    found = solver.greedyBestFirst();
+                } else if (selectedAlgorithm.contains("Dead End")) {
+                    found = solver.deadEndFill();
                 }
                 
                 return found;
@@ -337,12 +359,22 @@ public class MazeUI extends JFrame {
                         // Show final path
                         List<Tile> path = solver.reconstructPath(findEndTile());
                         highlightFinalPath(path);
-                        JOptionPane.showMessageDialog(MazeUI.this, "Path found!");
+                        
+                        // Show success message with algorithm info
+                        String algorithm = (String) algorithmDropdown.getSelectedItem();
+                        String message = String.format("Path found using %s!\nSteps taken: %d\nPath length: %d", 
+                                                     algorithm, counter.value, path.size());
+                        JOptionPane.showMessageDialog(MazeUI.this, message, "Success", JOptionPane.INFORMATION_MESSAGE);
                     } else {
-                        JOptionPane.showMessageDialog(MazeUI.this, "No path found!");
+                        String algorithm = (String) algorithmDropdown.getSelectedItem();
+                        String message = String.format("No path found using %s.\nSteps taken: %d", 
+                                                     algorithm, counter.value);
+                        JOptionPane.showMessageDialog(MazeUI.this, message, "No Path Found", JOptionPane.WARNING_MESSAGE);
                     }
                 } catch (Exception e) {
-                    JOptionPane.showMessageDialog(MazeUI.this, "Error: " + e.getMessage());
+                    JOptionPane.showMessageDialog(MazeUI.this, "Error running algorithm: " + e.getMessage(), 
+                                                "Error", JOptionPane.ERROR_MESSAGE);
+                    e.printStackTrace();
                 }
                 
                 // Re-enable start button
@@ -354,7 +386,8 @@ public class MazeUI extends JFrame {
     }
     
     private void resetMaze() {
-        counter.value = 0 ;
+        counter.value = 0;
+        deadEndTiles = null; // Reset dead end tracking
         for (Tile[] row : maze) {
             for (Tile tile : row) {
                 tile.setVisited(false);
@@ -373,5 +406,25 @@ public class MazeUI extends JFrame {
             }
         }
         return null;
+    }
+    
+    // Method to mark dead end tiles for visualization
+    public void markDeadEndTile(int row, int col) {
+        if (deadEndTiles == null) {
+            deadEndTiles = new boolean[maze.length][maze[0].length];
+        }
+        deadEndTiles[row][col] = true;
+    }
+    
+    // Main method for testing
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(() -> {
+            try {
+                UIManager.setLookAndFeel(UIManager.getLookAndFeel());
+            } catch (Exception e) {
+                // Use default look and feel if system look and feel fails
+            }
+            new MazeUI();
+        });
     }
 }

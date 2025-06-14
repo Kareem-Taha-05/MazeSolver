@@ -15,7 +15,7 @@ enum TileType {
 
 public class Tile {
     
-    // initialize our grid rows and columns 
+    // initialize our grid rows and columns sizes
     private int row;
     private int col;
     // our tile type from the enum
